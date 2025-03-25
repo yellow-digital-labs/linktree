@@ -1,26 +1,60 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --foreground-rgb: 50, 50, 50;
+  --background-start-rgb: 240, 240, 240;
+  --background-end-rgb: 225, 225, 225;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+    to bottom right,
+    rgb(var(--background-start-rgb)),
+    rgb(var(--background-end-rgb))
+  );
+  min-height: 100vh;
+}
+
+@layer components {
+  .skeuomorphic-card {
+    @apply bg-white rounded-xl shadow-[0_10px_20px_rgba(0,0,0,0.19),0_6px_6px_rgba(0,0,0,0.23)] 
+           border border-gray-200 overflow-hidden;
+    background-image: linear-gradient(180deg, #ffffff 0%, #f0f0f0 100%);
+  }
+  
+  .skeuomorphic-dark {
+    @apply bg-gray-800 rounded-xl shadow-[0_10px_20px_rgba(0,0,0,0.3),0_6px_6px_rgba(0,0,0,0.3)] 
+           border border-gray-700 overflow-hidden;
+    background-image: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%);
+  }
+  
+  .input-field {
+    @apply w-full p-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 
+           focus:ring-blue-500 shadow-inner text-gray-800;
+  }
+  
+  .btn-primary {
+    @apply px-6 py-3 text-white rounded-lg transition-all duration-300 
+           shadow-[0_4px_6px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.1)] 
+           active:shadow-[0_1px_2px_rgba(0,0,0,0.1)] active:translate-y-0.5;
+    background-image: linear-gradient(180deg, #4a7bff 0%, #2855c6 100%);
+  }
+  
+  .btn-secondary {
+    @apply px-6 py-3 text-gray-700 rounded-lg transition-all duration-300 
+           shadow-[0_4px_6px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.1)] 
+           active:shadow-[0_1px_2px_rgba(0,0,0,0.1)] active:translate-y-0.5;
+    background-image: linear-gradient(180deg, #ffffff 0%, #e0e0e0 100%);
+  }
 }
