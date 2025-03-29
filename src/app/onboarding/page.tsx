@@ -10,6 +10,8 @@ export default function Onboarding() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     username: '',
+    email: '',
+    industry: '',
     fullName: '',
     bio: '',
     profileImage: null,
@@ -17,7 +19,7 @@ export default function Onboarding() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const router = useRouter();
-  const totalSteps = 4;
+  const totalSteps = 5;
 
   const validateStep = (currentStep: number) => {
     let isValid = true;
@@ -31,12 +33,25 @@ export default function Onboarding() {
         newErrors.username = 'Username can only contain letters, numbers, underscores and hyphens';
         isValid = false;
       }
+      
+      if (!formData.email.trim()) {
+        newErrors.email = 'Email is required';
+        isValid = false;
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        newErrors.email = 'Please enter a valid email address';
+        isValid = false;
+      }
     } else if (currentStep === 2) {
+      if (!formData.industry) {
+        newErrors.industry = 'Please select your industry';
+        isValid = false;
+      }
+    } else if (currentStep === 3) {
       if (!formData.fullName.trim()) {
         newErrors.fullName = 'Full name is required';
         isValid = false;
       }
-    } else if (currentStep === 3) {
+    } else if (currentStep === 4) {
       const hasValidLink = formData.links.some(link => 
         link.title.trim() && link.url.trim() && link.url.includes('.')
       );
@@ -96,12 +111,8 @@ export default function Onboarding() {
       {/* Header */}
       <header className="py-6 px-4 sm:px-6 lg:px-8 border-b border-gray-100">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="text-2xl font-medium text-indigo-900">LinkFolio</div>
-          <Link 
-            href="/dashboard" 
-            className="text-sm text-gray-500 hover:text-indigo-600 transition-colors"
-          >
-            Skip
+          <Link href="/" className="text-2xl font-medium text-indigo-900 hover:text-indigo-700 transition-colors">
+            LinkFolio
           </Link>
         </div>
       </header>
@@ -162,12 +173,90 @@ export default function Onboarding() {
                       </p>
                     )}
                   </div>
+                  
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                      Email address
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      id="email"
+                      className={`focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-3 ${
+                        errors.email ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''
+                      }`}
+                      placeholder="you@example.com"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                    />
+                    {errors.email && (
+                      <p className="mt-2 text-sm text-red-600">{errors.email}</p>
+                    )}
+                    <p className="mt-2 text-sm text-gray-500">
+                      We'll use this to send you important updates and notifications.
+                    </p>
+                  </div>
                 </div>
               </StepContainer>
             )}
 
             {step === 2 && (
               <StepContainer key="step2">
+                <h2 className="text-2xl font-medium text-gray-900 mb-6">What industry are you in?</h2>
+                <p className="text-gray-600 mb-8">This helps us customize your experience and connect you with like-minded creators.</p>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="industry" className="block text-sm font-medium text-gray-700 mb-1">
+                      Select your industry
+                    </label>
+                    <select
+                      id="industry"
+                      name="industry"
+                      className={`mt-1 block w-full pl-3 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md ${
+                        errors.industry ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''
+                      }`}
+                      value={formData.industry}
+                      onChange={handleInputChange}
+                    >
+                      <option value="">Select an industry</option>
+                      <option value="fashion">Fashion</option>
+                      <option value="health_fitness">Health & Fitness</option>
+                      <option value="marketing">Marketing</option>
+                      <option value="music">Music</option>
+                      <option value="art_design">Art & Design</option>
+                      <option value="technology">Technology</option>
+                      <option value="education">Education</option>
+                      <option value="finance">Finance</option>
+                      <option value="food_beverage">Food & Beverage</option>
+                      <option value="travel">Travel</option>
+                      <option value="gaming">Gaming</option>
+                      <option value="beauty">Beauty</option>
+                      <option value="other">Other</option>
+                    </select>
+                    {errors.industry && (
+                      <p className="mt-2 text-sm text-red-600">{errors.industry}</p>
+                    )}
+                  </div>
+                  
+                  <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mt-6">
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <p className="text-sm text-indigo-700">
+                        We'll use this information to suggest relevant features and templates for your profile.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </StepContainer>
+            )}
+
+            {step === 3 && (
+              <StepContainer key="step3">
                 <h2 className="text-2xl font-medium text-gray-900 mb-6">Tell us about yourself</h2>
                 <p className="text-gray-600 mb-8">Add some personal details to make your profile stand out.</p>
                 
@@ -244,8 +333,8 @@ export default function Onboarding() {
               </StepContainer>
             )}
 
-            {step === 3 && (
-              <StepContainer key="step3">
+            {step === 4 && (
+              <StepContainer key="step4">
                 <h2 className="text-2xl font-medium text-gray-900 mb-6">Add your links</h2>
                 <p className="text-gray-600 mb-8">Share your social media profiles, websites, or any other links you want to showcase.</p>
                 
@@ -319,8 +408,8 @@ export default function Onboarding() {
               </StepContainer>
             )}
 
-            {step === 4 && (
-              <StepContainer key="step4">
+            {step === 5 && (
+              <StepContainer key="step5">
                 <h2 className="text-2xl font-medium text-gray-900 mb-6">Choose your style</h2>
                 <p className="text-gray-600 mb-8">Select a theme that matches your personal brand.</p>
                 
