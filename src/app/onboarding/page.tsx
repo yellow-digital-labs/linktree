@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 
 export default function Onboarding() {
   const [step, setStep] = useState(1);
@@ -22,6 +23,13 @@ export default function Onboarding() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [authToken, setAuthToken] = useState<string | null>(() => {
+    // Initialize from localStorage if available
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('linktree_authToken');
+    }
+    return null;
+  });
   const router = useRouter();
   const totalSteps = 7;
 
@@ -92,41 +100,49 @@ export default function Onboarding() {
     try {
       // Determine which data to send based on the current step
       let dataToSave = {};
+      let stepName = '';
       
       switch(currentStep) {
         case 1:
+          stepName = 'account_setup';
           dataToSave = {
             username: formData.username,
             email: formData.email
           };
           break;
         case 2:
+          stepName = 'password';
           dataToSave = {
             password: formData.password
           };
           break;
         case 3:
+          stepName = 'industry';
           dataToSave = {
             industry: formData.industry
           };
           break;
         case 4:
+          stepName = 'profile_info';
           dataToSave = {
             fullName: formData.fullName,
             bio: formData.bio
           };
           break;
         case 5:
+          stepName = 'links';
           dataToSave = {
             links: formData.links
           };
           break;
         case 6:
+          stepName = 'theme';
           dataToSave = {
             theme: formData.theme
           };
           break;
         case 7:
+          stepName = 'complete';
           // Final submission - send complete data
           dataToSave = {
             ...formData,
@@ -137,23 +153,48 @@ export default function Onboarding() {
       }
       
       // Make API call to save the data
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add auth token to headers for steps after step 1
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+      
       const response = await fetch('/api/onboarding', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           step: currentStep,
+          stepName: stepName,
           data: dataToSave
         }),
       });
       
       if (!response.ok) {
-        throw new Error('Failed to save data');
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.message || 'Failed to save data';
+        toast.error(errorMessage);
+        throw new Error(errorMessage);
       }
+      
+      // Parse the response
+      const responseData = await response.json();
+      
+      // If we're on step 1, store the auth token for future requests
+      if (currentStep === 1 && responseData.token) {
+        setAuthToken(responseData.token);
+        // Store with linktree prefix
+        localStorage.setItem('linktree_authToken', responseData.token);
+      }
+      
+      // Show success toast
+      toast.success(`Step ${currentStep} completed successfully!`);
       
       // If we're on the final step and submission is successful, redirect to dashboard
       if (currentStep === totalSteps) {
+        toast.success('Setup complete! Redirecting to dashboard...');
         router.push('/dashboard');
       }
       
@@ -177,8 +218,7 @@ export default function Onboarding() {
         }
         // If it's the final step, the redirect happens in saveStepData
       } else {
-        // Show error message if save failed
-        alert('Failed to save your data. Please try again.');
+        // Error toast is already shown in saveStepData
       }
     }
   };
