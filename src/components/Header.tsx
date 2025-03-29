@@ -32,8 +32,8 @@ export default function Header() {
     <header 
       className={`sticky top-0 z-50 w-full transition-all duration-300 ${
         isScrolled 
-          ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-md' 
-          : 'bg-transparent'
+          ? 'bg-white shadow-md' 
+          : 'bg-white'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -56,7 +56,7 @@ export default function Header() {
             <Link 
               href="/" 
               className={`text-sm font-medium transition-colors hover:text-blue-600 ${
-                pathname === '/' ? 'text-blue-600' : 'text-gray-700 dark:text-gray-200'
+                pathname === '/' ? 'text-blue-600' : 'text-gray-700'
               }`}
             >
               Home
@@ -66,7 +66,7 @@ export default function Header() {
                 <Link 
                   href="/pricing" 
                   className={`text-sm font-medium transition-colors hover:text-blue-600 ${
-                    pathname === '/pricing' ? 'text-blue-600' : 'text-gray-700 dark:text-gray-200'
+                    pathname === '/pricing' ? 'text-blue-600' : 'text-gray-700'
                   }`}
                 >
                   Pricing
@@ -74,7 +74,7 @@ export default function Header() {
                 <Link 
                   href="/about" 
                   className={`text-sm font-medium transition-colors hover:text-blue-600 ${
-                    pathname === '/about' ? 'text-blue-600' : 'text-gray-700 dark:text-gray-200'
+                    pathname === '/about' ? 'text-blue-600' : 'text-gray-700'
                   }`}
                 >
                   About
@@ -84,7 +84,7 @@ export default function Header() {
             {isDashboard ? (
               <Link 
                 href="/dashboard" 
-                className="text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-blue-600 transition-colors"
+                className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
               >
                 Dashboard
               </Link>
@@ -92,7 +92,7 @@ export default function Header() {
               <div className="flex items-center space-x-4">
                 <Link 
                   href="/login" 
-                  className="text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-blue-600 transition-colors"
+                  className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
                 >
                   Log in
                 </Link>
@@ -114,7 +114,7 @@ export default function Header() {
           >
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              className="h-6 w-6 text-gray-700 dark:text-gray-200" 
+              className="h-6 w-6 text-gray-700" 
               fill="none" 
               viewBox="0 0 24 24" 
               stroke="currentColor"
@@ -137,13 +137,13 @@ export default function Header() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800"
+            className="md:hidden bg-white border-t border-gray-200"
           >
             <div className="px-4 py-3 space-y-3">
               <Link 
                 href="/" 
                 className={`block text-sm font-medium transition-colors hover:text-blue-600 ${
-                  pathname === '/' ? 'text-blue-600' : 'text-gray-700 dark:text-gray-200'
+                  pathname === '/' ? 'text-blue-600' : 'text-gray-700'
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -154,7 +154,7 @@ export default function Header() {
                   <Link 
                     href="/pricing" 
                     className={`block text-sm font-medium transition-colors hover:text-blue-600 ${
-                      pathname === '/pricing' ? 'text-blue-600' : 'text-gray-700 dark:text-gray-200'
+                      pathname === '/pricing' ? 'text-blue-600' : 'text-gray-700'
                     }`}
                     onClick={() => setIsMenuOpen(false)}
                   >
@@ -163,7 +163,7 @@ export default function Header() {
                   <Link 
                     href="/about" 
                     className={`block text-sm font-medium transition-colors hover:text-blue-600 ${
-                      pathname === '/about' ? 'text-blue-600' : 'text-gray-700 dark:text-gray-200'
+                      pathname === '/about' ? 'text-blue-600' : 'text-gray-700'
                     }`}
                     onClick={() => setIsMenuOpen(false)}
                   >
@@ -174,7 +174,7 @@ export default function Header() {
               {isDashboard ? (
                 <Link 
                   href="/dashboard" 
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-blue-600 transition-colors"
+                  className="block text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Dashboard
@@ -183,7 +183,7 @@ export default function Header() {
                 <div className="pt-4 space-y-3">
                   <Link 
                     href="/login" 
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-blue-600 transition-colors"
+                    className="block text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Log in

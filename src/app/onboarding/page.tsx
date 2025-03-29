@@ -15,15 +15,50 @@ export default function Onboarding() {
     profileImage: null,
     links: [{ title: '', url: '' }]
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const router = useRouter();
   const totalSteps = 4;
 
+  const validateStep = (currentStep: number) => {
+    let isValid = true;
+    const newErrors: Record<string, string> = {};
+
+    if (currentStep === 1) {
+      if (!formData.username.trim()) {
+        newErrors.username = 'Username is required';
+        isValid = false;
+      } else if (!/^[a-zA-Z0-9_-]+$/.test(formData.username)) {
+        newErrors.username = 'Username can only contain letters, numbers, underscores and hyphens';
+        isValid = false;
+      }
+    } else if (currentStep === 2) {
+      if (!formData.fullName.trim()) {
+        newErrors.fullName = 'Full name is required';
+        isValid = false;
+      }
+    } else if (currentStep === 3) {
+      const hasValidLink = formData.links.some(link => 
+        link.title.trim() && link.url.trim() && link.url.includes('.')
+      );
+      
+      if (!hasValidLink) {
+        newErrors.links = 'At least one valid link is required';
+        isValid = false;
+      }
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
   const handleNext = () => {
-    if (step < totalSteps) {
-      setStep(step + 1);
-    } else {
-      // Submit and redirect to dashboard
-      router.push('/dashboard');
+    if (validateStep(step)) {
+      if (step < totalSteps) {
+        setStep(step + 1);
+      } else {
+        // Submit and redirect to dashboard
+        router.push('/dashboard');
+      }
     }
   };
 
@@ -111,15 +146,21 @@ export default function Onboarding() {
                         type="text"
                         name="username"
                         id="username"
-                        className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-12 sm:text-sm border-gray-300 rounded-md py-3"
+                        className={`focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-12 sm:text-sm border-gray-300 rounded-md py-3 ${
+                          errors.username ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''
+                        }`}
                         placeholder="username"
                         value={formData.username}
                         onChange={handleInputChange}
                       />
                     </div>
-                    <p className="mt-2 text-sm text-gray-500">
-                      This will be your unique URL: linkfolio.com/{formData.username || 'username'}
-                    </p>
+                    {errors.username ? (
+                      <p className="mt-2 text-sm text-red-600">{errors.username}</p>
+                    ) : (
+                      <p className="mt-2 text-sm text-gray-500">
+                        This will be your unique URL: linkfolio.com/{formData.username || 'username'}
+                      </p>
+                    )}
                   </div>
                 </div>
               </StepContainer>
@@ -139,11 +180,16 @@ export default function Onboarding() {
                       type="text"
                       name="fullName"
                       id="fullName"
-                      className="focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-3"
+                      className={`focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-3 ${
+                        errors.fullName ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''
+                      }`}
                       placeholder="Your name"
                       value={formData.fullName}
                       onChange={handleInputChange}
                     />
+                    {errors.fullName && (
+                      <p className="mt-2 text-sm text-red-600">{errors.fullName}</p>
+                    )}
                   </div>
                   
                   <div>
@@ -202,6 +248,12 @@ export default function Onboarding() {
               <StepContainer key="step3">
                 <h2 className="text-2xl font-medium text-gray-900 mb-6">Add your links</h2>
                 <p className="text-gray-600 mb-8">Share your social media profiles, websites, or any other links you want to showcase.</p>
+                
+                {errors.links && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                    <p className="text-sm text-red-600">{errors.links}</p>
+                  </div>
+                )}
                 
                 <div className="space-y-6">
                   {formData.links.map((link, index) => (
