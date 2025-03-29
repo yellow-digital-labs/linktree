@@ -11,15 +11,18 @@ export default function Onboarding() {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
+    password: '',
+    confirmPassword: '',
     industry: '',
     fullName: '',
     bio: '',
     profileImage: null,
-    links: [{ title: '', url: '' }]
+    links: [{ title: '', url: '', buttonText: '' }],
+    theme: 'Minimal' // Default theme
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const router = useRouter();
-  const totalSteps = 5;
+  const totalSteps = 6;
 
   const validateStep = (currentStep: number) => {
     let isValid = true;
@@ -42,16 +45,32 @@ export default function Onboarding() {
         isValid = false;
       }
     } else if (currentStep === 2) {
+      if (!formData.password) {
+        newErrors.password = 'Password is required';
+        isValid = false;
+      } else if (formData.password.length < 8) {
+        newErrors.password = 'Password must be at least 8 characters';
+        isValid = false;
+      }
+      
+      if (!formData.confirmPassword) {
+        newErrors.confirmPassword = 'Please confirm your password';
+        isValid = false;
+      } else if (formData.password !== formData.confirmPassword) {
+        newErrors.confirmPassword = 'Passwords do not match';
+        isValid = false;
+      }
+    } else if (currentStep === 3) {
       if (!formData.industry) {
         newErrors.industry = 'Please select your industry';
         isValid = false;
       }
-    } else if (currentStep === 3) {
+    } else if (currentStep === 4) {
       if (!formData.fullName.trim()) {
         newErrors.fullName = 'Full name is required';
         isValid = false;
       }
-    } else if (currentStep === 4) {
+    } else if (currentStep === 5) {
       const hasValidLink = formData.links.some(link => 
         link.title.trim() && link.url.trim() && link.url.includes('.')
       );
@@ -91,19 +110,124 @@ export default function Onboarding() {
   const handleLinkChange = (index: number, field: string, value: string) => {
     const updatedLinks = [...formData.links];
     updatedLinks[index] = { ...updatedLinks[index], [field]: value };
+    
+    // Add URL prefix when platform is selected
+    if (field === 'title') {
+      let urlPrefix = '';
+      switch (value) {
+        case 'Instagram':
+          urlPrefix = 'https://instagram.com/';
+          break;
+        case 'Facebook':
+          urlPrefix = 'https://facebook.com/';
+          break;
+        case 'YouTube':
+          urlPrefix = 'https://youtube.com/';
+          break;
+        case 'X':
+          urlPrefix = 'https://x.com/';
+          break;
+        case 'Spotify':
+          urlPrefix = 'https://open.spotify.com/';
+          break;
+        case 'SoundCloud':
+          urlPrefix = 'https://soundcloud.com/';
+          break;
+        case 'Apple Music':
+          urlPrefix = 'https://music.apple.com/';
+          break;
+        case 'Audiomack':
+          urlPrefix = 'https://audiomack.com/';
+          break;
+        case 'Pinterest':
+          urlPrefix = 'https://pinterest.com/';
+          break;
+        case 'Clubhouse':
+          urlPrefix = 'https://clubhouse.com/@';
+          break;
+        default:
+          urlPrefix = 'https://';
+      }
+      updatedLinks[index].url = urlPrefix;
+      
+      // Set default button text based on platform
+      if (!updatedLinks[index].buttonText) {
+        updatedLinks[index].buttonText = value;
+      }
+    }
+    
     setFormData({ ...formData, links: updatedLinks });
   };
 
   const addLink = () => {
     setFormData({
       ...formData,
-      links: [...formData.links, { title: '', url: '' }]
+      links: [...formData.links, { title: '', url: '', buttonText: '' }]
     });
   };
 
   const removeLink = (index: number) => {
     const updatedLinks = formData.links.filter((_, i) => i !== index);
     setFormData({ ...formData, links: updatedLinks });
+  };
+
+  const getPrefixForDisplay = (platform: string) => {
+    switch (platform) {
+      case 'Instagram': return 'instagram.com/';
+      case 'Facebook': return 'facebook.com/';
+      case 'YouTube': return 'youtube.com/';
+      case 'X': return 'x.com/';
+      case 'Spotify': return 'open.spotify.com/';
+      case 'SoundCloud': return 'soundcloud.com/';
+      case 'Apple Music': return 'music.apple.com/';
+      case 'Audiomack': return 'audiomack.com/';
+      case 'Pinterest': return 'pinterest.com/';
+      case 'Clubhouse': return 'clubhouse.com/@';
+      default: return '';
+    }
+  };
+
+  const getInputValue = (link: { title: string, url: string }) => {
+    if (!link.title) return link.url;
+    
+    const prefix = getPrefixForUrl(link.title);
+    if (link.url.startsWith(prefix)) {
+      return link.url.substring(prefix.length);
+    }
+    return link.url;
+  };
+
+  const getPrefixForUrl = (platform: string) => {
+    switch (platform) {
+      case 'Instagram': return 'https://instagram.com/';
+      case 'Facebook': return 'https://facebook.com/';
+      case 'YouTube': return 'https://youtube.com/';
+      case 'X': return 'https://x.com/';
+      case 'Spotify': return 'https://open.spotify.com/';
+      case 'SoundCloud': return 'https://soundcloud.com/';
+      case 'Apple Music': return 'https://music.apple.com/';
+      case 'Audiomack': return 'https://audiomack.com/';
+      case 'Pinterest': return 'https://pinterest.com/';
+      case 'Clubhouse': return 'https://clubhouse.com/@';
+      default: return 'https://';
+    }
+  };
+
+  const handleUrlChange = (index: number, value: string, platform: string) => {
+    const prefix = getPrefixForUrl(platform);
+    const updatedLinks = [...formData.links];
+    updatedLinks[index] = { 
+      ...updatedLinks[index], 
+      url: platform ? prefix + value : value 
+    };
+    setFormData({ ...formData, links: updatedLinks });
+  };
+
+  const handleThemeSelect = (themeName: string) => {
+    setFormData({
+      ...formData,
+      theme: themeName
+    });
   };
 
   return (
@@ -202,6 +326,71 @@ export default function Onboarding() {
 
             {step === 2 && (
               <StepContainer key="step2">
+                <h2 className="text-2xl font-medium text-gray-900 mb-6">Create your password</h2>
+                <p className="text-gray-600 mb-8">Choose a secure password to protect your account.</p>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                      Password
+                    </label>
+                    <input
+                      type="password"
+                      name="password"
+                      id="password"
+                      className={`focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-3 ${
+                        errors.password ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''
+                      }`}
+                      placeholder="••••••••"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                    />
+                    {errors.password && (
+                      <p className="mt-2 text-sm text-red-600">{errors.password}</p>
+                    )}
+                    <p className="mt-2 text-sm text-gray-500">
+                      Use at least 8 characters with a mix of letters, numbers, and symbols.
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                      Confirm Password
+                    </label>
+                    <input
+                      type="password"
+                      name="confirmPassword"
+                      id="confirmPassword"
+                      className={`focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-3 ${
+                        errors.confirmPassword ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''
+                      }`}
+                      placeholder="••••••••"
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                    />
+                    {errors.confirmPassword && (
+                      <p className="mt-2 text-sm text-red-600">{errors.confirmPassword}</p>
+                    )}
+                  </div>
+                  
+                  <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mt-6">
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <p className="text-sm text-indigo-700">
+                        Your password is securely stored and never shared with third parties.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </StepContainer>
+            )}
+
+            {step === 3 && (
+              <StepContainer key="step3">
                 <h2 className="text-2xl font-medium text-gray-900 mb-6">What industry are you in?</h2>
                 <p className="text-gray-600 mb-8">This helps us customize your experience and connect you with like-minded creators.</p>
                 
@@ -255,8 +444,8 @@ export default function Onboarding() {
               </StepContainer>
             )}
 
-            {step === 3 && (
-              <StepContainer key="step3">
+            {step === 4 && (
+              <StepContainer key="step4">
                 <h2 className="text-2xl font-medium text-gray-900 mb-6">Tell us about yourself</h2>
                 <p className="text-gray-600 mb-8">Add some personal details to make your profile stand out.</p>
                 
@@ -298,43 +487,12 @@ export default function Onboarding() {
                       Brief description for your profile. URLs are hyperlinked.
                     </p>
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Profile Picture
-                    </label>
-                    <div className="mt-1 flex items-center space-x-5">
-                      <div className="flex-shrink-0">
-                        <div className="relative h-16 w-16 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200">
-                          {formData.profileImage ? (
-                            <Image 
-                              src={formData.profileImage} 
-                              alt="Profile" 
-                              width={64} 
-                              height={64} 
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <svg className="h-8 w-8 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-                            </svg>
-                          )}
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        className="bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        Upload
-                      </button>
-                    </div>
-                  </div>
                 </div>
               </StepContainer>
             )}
 
-            {step === 4 && (
-              <StepContainer key="step4">
+            {step === 5 && (
+              <StepContainer key="step5">
                 <h2 className="text-2xl font-medium text-gray-900 mb-6">Add your links</h2>
                 <p className="text-gray-600 mb-8">Share your social media profiles, websites, or any other links you want to showcase.</p>
                 
@@ -365,30 +523,72 @@ export default function Onboarding() {
                       <div className="space-y-4">
                         <div>
                           <label htmlFor={`link-title-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
-                            Title
+                            Platform
                           </label>
-                          <input
-                            type="text"
+                          <select
                             id={`link-title-${index}`}
                             className="focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-3"
-                            placeholder="e.g. Twitter, Portfolio, Blog"
                             value={link.title}
                             onChange={(e) => handleLinkChange(index, 'title', e.target.value)}
-                          />
+                          >
+                            <option value="">Select a platform</option>
+                            <option value="Instagram">Instagram</option>
+                            <option value="Facebook">Facebook</option>
+                            <option value="YouTube">YouTube</option>
+                            <option value="X">X (Twitter)</option>
+                            <option value="Spotify">Spotify</option>
+                            <option value="SoundCloud">SoundCloud</option>
+                            <option value="Apple Music">Apple Music</option>
+                            <option value="Audiomack">Audiomack</option>
+                            <option value="Pinterest">Pinterest</option>
+                            <option value="Clubhouse">Clubhouse</option>
+                            <option value="Books">Books</option>
+                            <option value="FAQs">FAQs</option>
+                            <option value="Header">Header</option>
+                            <option value="Mobile App">Mobile App</option>
+                            <option value="Music">Music</option>
+                            <option value="Music Presave">Music Presave</option>
+                          </select>
                         </div>
                         
                         <div>
                           <label htmlFor={`link-url-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
                             URL
                           </label>
+                          <div className="flex">
+                            {link.title && (
+                              <div className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
+                                {getPrefixForDisplay(link.title)}
+                              </div>
+                            )}
+                            <input
+                              type="text"
+                              id={`link-url-${index}`}
+                              className={`focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 py-3 ${
+                                link.title ? 'rounded-r-md' : 'rounded-md'
+                              }`}
+                              placeholder={link.title ? "username" : "https://"}
+                              value={getInputValue(link)}
+                              onChange={(e) => handleUrlChange(index, e.target.value, link.title)}
+                            />
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <label htmlFor={`button-text-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
+                            Button Text
+                          </label>
                           <input
-                            type="url"
-                            id={`link-url-${index}`}
+                            type="text"
+                            id={`button-text-${index}`}
                             className="focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-3"
-                            placeholder="https://"
-                            value={link.url}
-                            onChange={(e) => handleLinkChange(index, 'url', e.target.value)}
+                            placeholder="Follow me on Instagram"
+                            value={link.buttonText || ''}
+                            onChange={(e) => handleLinkChange(index, 'buttonText', e.target.value)}
                           />
+                          <p className="mt-1 text-sm text-gray-500">
+                            Text that will appear on the button for this link
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -408,8 +608,8 @@ export default function Onboarding() {
               </StepContainer>
             )}
 
-            {step === 5 && (
-              <StepContainer key="step5">
+            {step === 6 && (
+              <StepContainer key="step6">
                 <h2 className="text-2xl font-medium text-gray-900 mb-6">Choose your style</h2>
                 <p className="text-gray-600 mb-8">Select a theme that matches your personal brand.</p>
                 
@@ -419,14 +619,16 @@ export default function Onboarding() {
                     { name: 'Dark', color: '#10B981', bg: '#1F2937' },
                     { name: 'Sunset', color: '#F59E0B', bg: '#FFFBEB' },
                     { name: 'Ocean', color: '#0EA5E9', bg: '#F0F9FF' }
-                  ].map((theme, index) => (
+                  ].map((theme) => (
                     <div 
-                      key={index}
-                      className="border rounded-lg p-4 cursor-pointer hover:border-indigo-500 transition-colors"
+                      key={theme.name}
+                      className={`border rounded-lg p-4 cursor-pointer hover:border-indigo-500 transition-colors ${
+                        formData.theme === theme.name ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-gray-200'
+                      }`}
                       style={{ 
-                        backgroundColor: theme.bg,
-                        borderColor: index === 0 ? '#6366F1' : '#E5E7EB'
+                        backgroundColor: theme.bg
                       }}
+                      onClick={() => handleThemeSelect(theme.name)}
                     >
                       <div className="flex items-center justify-between mb-3">
                         <span 
@@ -435,7 +637,7 @@ export default function Onboarding() {
                         >
                           {theme.name}
                         </span>
-                        {index === 0 && (
+                        {formData.theme === theme.name && (
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>
