@@ -21,8 +21,9 @@ export default function Onboarding() {
     theme: 'Minimal' // Default theme
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
-  const totalSteps = 6;
+  const totalSteps = 7;
 
   const validateStep = (currentStep: number) => {
     let isValid = true;
@@ -85,13 +86,99 @@ export default function Onboarding() {
     return isValid;
   };
 
-  const handleNext = () => {
-    if (validateStep(step)) {
-      if (step < totalSteps) {
-        setStep(step + 1);
-      } else {
-        // Submit and redirect to dashboard
+  const saveStepData = async (currentStep: number) => {
+    setIsSubmitting(true);
+    
+    try {
+      // Determine which data to send based on the current step
+      let dataToSave = {};
+      
+      switch(currentStep) {
+        case 1:
+          dataToSave = {
+            username: formData.username,
+            email: formData.email
+          };
+          break;
+        case 2:
+          dataToSave = {
+            password: formData.password
+          };
+          break;
+        case 3:
+          dataToSave = {
+            industry: formData.industry
+          };
+          break;
+        case 4:
+          dataToSave = {
+            fullName: formData.fullName,
+            bio: formData.bio
+          };
+          break;
+        case 5:
+          dataToSave = {
+            links: formData.links
+          };
+          break;
+        case 6:
+          dataToSave = {
+            theme: formData.theme
+          };
+          break;
+        case 7:
+          // Final submission - send complete data
+          dataToSave = {
+            ...formData,
+            // Don't send the confirmPassword to the server
+            confirmPassword: undefined
+          };
+          break;
+      }
+      
+      // Make API call to save the data
+      const response = await fetch('/api/onboarding', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          step: currentStep,
+          data: dataToSave
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save data');
+      }
+      
+      // If we're on the final step and submission is successful, redirect to dashboard
+      if (currentStep === totalSteps) {
         router.push('/dashboard');
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error saving data:', error);
+      return false;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleNext = async () => {
+    if (validateStep(step)) {
+      // Save current step data
+      const saveSuccess = await saveStepData(step);
+      
+      if (saveSuccess) {
+        if (step < totalSteps) {
+          setStep(step + 1);
+        }
+        // If it's the final step, the redirect happens in saveStepData
+      } else {
+        // Show error message if save failed
+        alert('Failed to save your data. Please try again.');
       }
     }
   };
@@ -675,6 +762,87 @@ export default function Onboarding() {
                 </div>
               </StepContainer>
             )}
+
+            {step === 7 && (
+              <StepContainer key="step7">
+                <h2 className="text-2xl font-medium text-gray-900 mb-6">Preview Your Profile</h2>
+                <p className="text-gray-600 mb-8">Here's how your profile will look. You can go back to make changes or continue to finish setup.</p>
+                
+                <div className={`border rounded-lg overflow-hidden ${
+                  formData.theme === 'Dark' ? 'bg-gray-900' : 
+                  formData.theme === 'Sunset' ? 'bg-amber-50' : 
+                  formData.theme === 'Ocean' ? 'bg-sky-50' : 
+                  'bg-white'
+                }`}>
+                  {/* Profile Header */}
+                  <div className="p-6 text-center">
+                    <div className="w-24 h-24 mx-auto rounded-full bg-gray-200 flex items-center justify-center mb-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" className={`h-12 w-12 ${
+                        formData.theme === 'Dark' ? 'text-gray-600' : 'text-gray-400'
+                      }`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    
+                    <h1 className={`text-xl font-bold ${
+                      formData.theme === 'Dark' ? 'text-white' : 'text-gray-900'
+                    }`}>
+                      {formData.fullName || 'Your Name'}
+                    </h1>
+                    
+                    <p className={`text-sm mt-1 ${
+                      formData.theme === 'Dark' ? 'text-gray-300' : 'text-gray-500'
+                    }`}>
+                      @{formData.username || 'username'}
+                    </p>
+                    
+                    {formData.bio && (
+                      <p className={`mt-4 text-sm ${
+                        formData.theme === 'Dark' ? 'text-gray-300' : 'text-gray-600'
+                      }`}>
+                        {formData.bio}
+                      </p>
+                    )}
+                  </div>
+                  
+                  {/* Links */}
+                  <div className="px-6 pb-8 space-y-3">
+                    {formData.links.map((link, index) => {
+                      if (!link.url || !link.title) return null;
+                      
+                      const buttonColor = 
+                        formData.theme === 'Minimal' ? 'bg-indigo-600 hover:bg-indigo-700 text-white' :
+                        formData.theme === 'Dark' ? 'bg-green-600 hover:bg-green-700 text-white' :
+                        formData.theme === 'Sunset' ? 'bg-amber-500 hover:bg-amber-600 text-white' :
+                        'bg-sky-500 hover:bg-sky-600 text-white';
+                        
+                      return (
+                        <div key={index} className="w-full">
+                          <button
+                            className={`w-full py-3 px-4 rounded-lg font-medium text-sm transition-colors ${buttonColor}`}
+                          >
+                            {link.buttonText || link.title}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                
+                <div className="mt-6 bg-indigo-50 border border-indigo-100 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-indigo-700">
+                      This is a preview of your profile. You can customize it further from your dashboard after completing the setup.
+                    </p>
+                  </div>
+                </div>
+              </StepContainer>
+            )}
           </AnimatePresence>
 
           {/* Navigation buttons */}
@@ -694,9 +862,22 @@ export default function Onboarding() {
             <button
               type="button"
               onClick={handleNext}
-              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              disabled={isSubmitting}
+              className={`px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+                isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
+              }`}
             >
-              {step === totalSteps ? 'Finish Setup' : 'Continue'}
+              {isSubmitting ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Saving...
+                </span>
+              ) : (
+                step === totalSteps ? 'Finish Setup' : 'Continue'
+              )}
             </button>
           </div>
         </div>
