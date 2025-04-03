@@ -24,7 +24,7 @@ export default function Header() {
   }, []);
   
   // Don't show the header on certain pages
-  if (pathname === '/login' || pathname === '/forgot-password' || pathname === '/onboarding') {
+  if (pathname === '/login' || pathname === '/forgot-password' || pathname === '/onboarding' || pathname?.startsWith('/profile')) {
     return null;
   }
   

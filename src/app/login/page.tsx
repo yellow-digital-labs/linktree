@@ -19,7 +19,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      // Here you would make an API call to your login endpoint
+      // Make API call to Next.js API route for login
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -31,16 +31,21 @@ export default function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
+        throw new Error(data.message || 'Login failed');
       }
 
-      // Store token in localStorage or cookies
-      localStorage.setItem('token', data.token);
+      // If using JWT, store token in localStorage
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
       
-      // Redirect to dashboard
+      // If using cookies, they will be automatically handled by the browser
+      
+      // Redirect to dashboard after successful login
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Something went wrong');
+      console.error('Login error:', err);
     } finally {
       setIsLoading(false);
     }
