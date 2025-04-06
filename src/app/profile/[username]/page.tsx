@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { FaTwitter, FaLinkedin, FaGithub, FaGlobe } from 'react-icons/fa';
 import { MdLocationOn, MdWork } from 'react-icons/md';
+import { trackProfileVisit, getSessionId, getDeviceInfo } from '@/utils/analytics';
 
 interface ProfileData {
   username: string;
@@ -25,6 +26,8 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const sessionId = getSessionId();
+  const { device, browser } = getDeviceInfo();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -47,8 +50,36 @@ export default function ProfilePage() {
 
     if (username) {
       fetchProfile();
+      
+      // Track page view
+      trackProfileVisit({
+        profileUsername: username as string,
+        sessionId,
+        eventType: 'page_view',
+        referrer: document.referrer,
+        userAgent: navigator.userAgent,
+        device,
+        browser
+      });
     }
-  }, [username]);
+  }, [username, sessionId, device, browser]);
+
+  // Function to track link clicks
+  const handleLinkClick = (platform: string, url: string) => {
+    trackProfileVisit({
+      profileUsername: username as string,
+      sessionId,
+      eventType: 'link_click',
+      linkData: {
+        platform,
+        url
+      },
+      referrer: document.referrer,
+      userAgent: navigator.userAgent,
+      device,
+      browser
+    });
+  };
 
   if (isLoading) {
     return (
@@ -143,6 +174,7 @@ export default function ProfilePage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`w-full py-3 px-4 rounded-lg font-medium text-sm transition-colors ${buttonColor} block text-center`}
+                  onClick={() => handleLinkClick(link.platform, link.url)}
                 >
                   {link.buttonText || getPlatformName(link.platform)}
                 </a>

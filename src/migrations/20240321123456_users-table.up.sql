@@ -27,3 +27,30 @@ CREATE TABLE IF NOT EXISTS social_links (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   INDEX idx_user_id (user_id)
 );
+
+-- Create the profile_analytics table
+-- Create the profile_analytics table for MySQL
+CREATE TABLE profile_analytics (
+  id CHAR(36) PRIMARY KEY,
+  profile_username VARCHAR(255) NOT NULL,
+  visitor_id VARCHAR(255),
+  session_id VARCHAR(255) NOT NULL,
+  event_type VARCHAR(50) NOT NULL,
+  link_data JSON,
+  referrer TEXT,
+  user_agent TEXT,
+  country VARCHAR(100),
+  city VARCHAR(100),
+  device VARCHAR(50),
+  browser VARCHAR(50),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  -- Add an index on profile_username for faster queries
+  CONSTRAINT fk_profile_username FOREIGN KEY (profile_username) 
+    REFERENCES users(username) ON DELETE CASCADE
+);
+
+-- Create indexes for common queries
+CREATE INDEX idx_profile_analytics_username ON profile_analytics(profile_username);
+CREATE INDEX idx_profile_analytics_created_at ON profile_analytics(created_at);
+CREATE INDEX idx_profile_analytics_event_type ON profile_analytics(event_type);

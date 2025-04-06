@@ -31,6 +31,5 @@ export async function query(sql: string, params: any[] = []) {
     connection.release();
   }
 }
-
 // Export the pool for direct access if needed
 export { pool };
